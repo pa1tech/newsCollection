@@ -8,14 +8,12 @@ $count = count($xml->entry);
 for ($i=0; $i < $count; $i++) {
     $url = $xml->entry[$i]->link->attributes();
     $title = $xml->entry[$i]->title;
+    $descp = $xml->entry[$i]->children( 'media', true )->group->description;
     if( time() - strtotime($xml->entry[$i]->published) < (1.5*24*60*60) ){
-        if (str_contains( strtolower($title), "glance") or str_contains( strtolower($title), "quick") or str_contains( strtolower($title), "newsreel") or (str_contains( strtolower($title), "news") and str_contains( strtolower($title), "reel"))) {
-    
-        $fuull = $xml->entry[$i]->children( 'media', true )->group->description;
-        $fuull = explode("#",$fuull)[0];
-        $fuull = str_replace('*', " • ", $fuull );
+        if ( (str_contains( strtolower($descp), "india") and str_contains( strtolower($descp), "business") and str_contains( strtolower($descp), "hour")) or (str_contains( strtolower($descp), "top") and str_contains( strtolower($descp), "headlines")) ) {
 
-        $msg = date('jS M', strtotime($xml->entry[$i]->published))."\n".$url['href']."\n\n".$fuull; 
+        $fuull = explode("CNBC TV18 LIVE TV",$fuull)[0];
+        $msg = date('jS M', strtotime($xml->entry[$i]->published))."\n".$url['href']."\n\n";//.$fuull; 
         echo $msg;
         foreach ($_GET as $chatId => $value) {
           echo "$chatId <br>";
