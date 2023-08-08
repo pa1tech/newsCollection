@@ -75,7 +75,7 @@ def webhook3():
 
 	n = 0
 	txt = "<b>Symbol - LTP - Vol.</b>\n"
-	for j in range(5):
+	while( n < 5 ):
 		if(int(df["qty"][j]) > 25):
 			txt = txt + f'• {df["symbol"][j]} - {df["ltP"][j]} - {df["qty"][j]}\n'
 			n = n + 1
