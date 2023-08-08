@@ -35,7 +35,7 @@ def webhook2():
 		except Exception as e:
 			pass #txt = "\n" + txt + str(e)
 	
-	txt = txt + "\nhttps://www.ccilindia.com/OMMWOL.aspx"
+	txt = txt + "\n<i>https://www.ccilindia.com/OMMWOL.aspx</i>"
 	txt1 = txt
 
 	if(n>0):
@@ -73,17 +73,20 @@ def webhook3():
 	df.reset_index(drop = True, inplace = True)
 	# df.to_csv("g.csv")
 
-	n = 0
+	n = 0; j = 0
 	txt = "<b>Symbol - LTP - Vol.</b>\n"
 	while( n < 5 ):
 		if(int(df["qty"][j]) > 25):
 			txt = txt + f'• {df["symbol"][j]} - {df["ltP"][j]} - {df["qty"][j]}\n'
 			n = n + 1
+		j = j+1
 
 	s = requests.get("https://ibjarates.com/").content
 	a = re.findall('"lblrate24K">.*</span>',s.decode('utf-8'))[0]
 	a = float(a.split(">")[1].split("<")[0])
 	txt = txt + f"\n<i> Today's Rate : <b>{a}</b></i>"
+
+	txt = txt + "\n\n<i>https://www.nseindia.com/market-data/sovereign-gold-bond</i>"
 
 	if(n > 0):
 		for chat in list(request.args):
