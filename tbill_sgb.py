@@ -8,6 +8,7 @@ import requests
 import urllib 
 from requests import Session
 import pandas as pd
+from bs4 import BeautifulSoup
 
 token = ""
 app = Flask(__name__)
@@ -36,7 +37,65 @@ def webhook2():
 			pass #txt = "\n" + txt + str(e)
 	
 	txt = txt + "\n<i>https://www.ccilindia.com/OMMWOL.aspx</i>"
-	txt1 = txt
+
+	if(n>0):
+		for chat in list(request.args):
+			requests.get("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&parse_mode=HTML&text="%(token,chat)+urllib.parse.quote(txt))
+
+	return txt, 200
+
+@app.route("/sgb_nds", methods=['GET'])
+def webhook3():
+	tz_NY = pytz.timezone('Asia/Kolkata')
+	req = requests.get("https://www.ccilindia.com/OMMWOL.aspx")
+	dfs = pd.read_html(req.text)
+
+	soup = BeautifulSoup(req.text,'html.parser')
+	VIEWSTATEGENERATOR  = soup.find('input',{'id':'__VIEWSTATEGENERATOR'}).get('value')
+	VIEWSTATE  = soup.find('input',{'id':'__VIEWSTATE'}).get('value')
+	EVENTVALIDATION  = soup.find('input',{'id':'__EVENTVALIDATION'}).get('value')
+	VIEWSTATEENCRYPTED  = soup.find('input',{'id':'__VIEWSTATEENCRYPTED'}).get('value')
+	
+	txt = "<b>Maturity - Offer Price - Acc. Days</b>\n"
+	n = 0
+	def sg(df):
+		arr = df[0]
+		mDate = df[1]
+		price = df[5]
+		tot = 0
+		txtl = ""
+		for j in range(len(arr)):
+			if(arr[j][:5] == "02.50"):
+				a = datetime.datetime.strptime(mDate[j],"%d/%m/%Y").replace(tzinfo=tz_NY)
+				days  = 182-int((a-datetime.datetime.now(tz_NY)).days)%182
+				if(float(price[j]) > 1):
+					tot = tot + 1
+					txtl = txtl + f"{mDate[j]} - {price[j]} - {days}\n"
+		return tot,txtl
+
+	df = dfs[5]
+	nPages = len(df[0][len(df[6])-1].split(" "))
+	tot,txtl = sg(df)
+	n = n + tot
+	txt = txt + txtl
+
+	for j in range(1,nPages):
+		data = {
+	    "__EVENTTARGET": "grdMWOL$ctl29$ctl0%d"%j,
+	    "__EVENTARGUMENT": "",
+	    "__VIEWSTATE": VIEWSTATE,
+	    "__VIEWSTATEGENERATOR": VIEWSTATEGENERATOR,
+	    "__VIEWSTATEENCRYPTED" :VIEWSTATEENCRYPTED,
+	    "__EVENTVALIDATION": EVENTVALIDATION
+		}
+		res = requests.post('https://www.ccilindia.com/OMMWOL.aspx',data=data)
+		dfs = pd.read_html(res.text)
+		df = dfs[5]
+		tot,txtl = sg(df)
+		n = n + tot
+		txt = txt + txtl
+	
+	txt = txt + "\n<i>https://www.ccilindia.com/OMMWOL.aspx</i>"
 
 	if(n>0):
 		for chat in list(request.args):
@@ -45,8 +104,8 @@ def webhook2():
 	return txt, 200
 
 # https://github.com/jugaad-py/jugaad-data/tree/master
-@app.route("/sgb", methods=['GET'])
-def webhook3():
+@app.route("/sgb_nse", methods=['GET'])
+def webhook4():
 	s = Session()
 	h = {
 	    "Host": "www.nseindia.com",
@@ -93,6 +152,5 @@ def webhook3():
 			requests.get("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&parse_mode=HTML&text="%(token,chat)+urllib.parse.quote(txt))
 
 	return txt, 200
-
 
 app.run()
