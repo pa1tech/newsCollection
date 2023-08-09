@@ -140,9 +140,15 @@ def webhook4():
 			n = n + 1
 		j = j+1
 
-	s = requests.get("https://ibjarates.com/").content
-	a = re.findall('"lblrate24K">.*</span>',s.decode('utf-8'))[0]
+	s = requests.get("https://ibjarates.com/", timeout = 5).text
+	a = re.findall('"lblrate24K">.*</span>',s)[0]
 	a = float(a.split(">")[1].split("<")[0])
+
+	s = requests.get("https://ibja.co", timeout = 5).text
+	a = re.findall('"lblFineGold999">₹.*</span>',s)[0]
+	a = a.split(">")[1].split("<")[0]
+
+
 	txt = txt + f"\n<i> Today's Rate : <b>{a}</b></i>"
 
 	txt = txt + "\n\n<i>https://www.nseindia.com/market-data/sovereign-gold-bond</i>"
@@ -152,5 +158,6 @@ def webhook4():
 			requests.get("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&parse_mode=HTML&text="%(token,chat)+urllib.parse.quote(txt))
 
 	return txt, 200
+
 
 app.run()
