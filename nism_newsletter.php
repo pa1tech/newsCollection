@@ -1,6 +1,6 @@
 <?php
 
-$feed = file_get_contents("https://www.nism.ac.in/nism-newsletter-2023/");
+$feed = file_get_contents("https://www.nism.ac.in/newsletter-2025/");
 $path = "https://api.telegram.org/bot<token>";
 
 $dom = new DOMDocument;
